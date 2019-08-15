@@ -18,7 +18,7 @@ class YokaclubSpider(scrapy.Spider):
         try:
             # 第一版板块
             # 进行起始 url 的拼接
-            url_list = {'http://www.yoka.com/club/': '时尚', 'http://beauty.yoka.com/': '美容',
+            url_list = {'http://fashion.yoka.com/': '时尚', 'http://beauty.yoka.com/': '美容',
                         'http://luxury.yoka.com/': '奢华',
                         'http://star.yoka.com/': '明星', 'http://life.yoka.com/': '乐活', 'http://www.yokamen.cn/': '男士',
                         'http://www.yoka.com/video/': '视频', 'http://www.yoka.com/z/': '独家',
@@ -32,24 +32,23 @@ class YokaclubSpider(scrapy.Spider):
                             "Accept-Language": " zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
                             "Accept-Encoding": " gzip, deflate",
                             "Connection": " keep-alive"}
-            for key, value in url_list.items():
-                # 一级栏目
-                item = YokaSpiderItem()
-                # item = {}
-                item['site_name'] = '优卡网'
-                item['domain'] = 'www.yoka.com'
-                item['domain_url'] = 'http://www.yoka.com/'
-                item['first_title'] = '优卡网-首页-' + value
-                item['first_title_url'] = key
-                yield scrapy.Request(
-                    method="GET",
-                    url=key,
-                    headers=self.headers,
-                    callback=self.parse,
-                    meta={'item': item}
-                )
-                print('时尚栏目数据抓取完成-----------------------------------')
-                break
+            # for key, value in url_list.items():
+            # 一级栏目
+            item = YokaSpiderItem()
+            # item = {}
+            item['site_name'] = '优卡网'
+            item['domain'] = 'www.yoka.com'
+            item['domain_url'] = 'http://www.yoka.com/'
+            item['first_title'] = '优卡网-首页-' + url_list['http://fashion.yoka.com/']
+            item['first_title_url'] = 'http://fashion.yoka.com/'
+            yield scrapy.Request(
+                method="GET",
+                url=item['first_title_url'],
+                headers=self.headers,
+                callback=self.parse,
+                meta={'item': item}
+            )
+            print('时尚栏目数据抓取完成-----------------------------------')
         except Exception as e:
             print(e)
             logging.info(e)
@@ -62,6 +61,8 @@ class YokaclubSpider(scrapy.Spider):
             # 二级栏目
             item['second_title'] = item['first_title'] + '-' + aNode.xpath('./text()').extract_first()
             item['second_title_url'] = aNode.xpath('./@href').extract_first()
+            if item['second_title'] == '优卡网-首页-时尚-时尚圈':
+                print('club data-------------')
             # print("item['second_title_url']", item['second_title_url'])
             yield scrapy.Request(
                 method="GET",
@@ -74,6 +75,34 @@ class YokaclubSpider(scrapy.Spider):
     def parse_info(self, response):
         """获取内页信息"""
         item = response.meta['item']
+        if item['second_title'] == '优卡网-首页-时尚-时尚圈':
+            print('club data-------------')
+        # 获取box栏详情
+        details_box = response.xpath('//div[contains(@class,"g-list")]')
+        # details_box_last = response.xpath('//*[@id="loadMoreBox"]/div')
+        # details_box.extend(details_box_last)
+        if details_box:
+            for detail in details_box:
+                # print('title_detail', detail)
+                # 栏目等级
+                item['column_level'] = '--'
+                # 详情
+                item['title_detail'] = detail.xpath('./div[@class="tit"]/a/text()').extract_first()
+                # 详情链接
+                item['link_url'] = response.urljoin(detail.xpath('./div[@class="tit"]/a[1]/@href').extract_first())
+                # print("item['link_url']---box", item['link_url'])
+                # 图片url
+                item['img_url'] = detail.xpath('./div[@class="img"]/a/img/@src').extract_first()
+                # 发布时间
+                self.get_release_time(item)
+                if item['link_url']:
+                    yield scrapy.Request(
+                        method="GET",
+                        url=item['link_url'],
+                        callback=self.parse_detail,
+                        meta={'item': deepcopy(item)}
+                    )
+
         # 获取有焦点栏详情标题等
         details_focus = response.xpath('//*[@id="fFocus"]/div/div[contains(@class,"item")]')
         if details_focus:
@@ -102,35 +131,62 @@ class YokaclubSpider(scrapy.Spider):
             with open('focus_kong.txt', 'a') as f:
                 f.write(str(response.url) + '\n')
 
-        # 获取box栏详情
-        details_box = response.xpath('//div[contains(@class,"g-list")]')
-        # details_box_last = response.xpath('//*[@id="loadMoreBox"]/div')
-        # details_box.extend(details_box_last)
-        if details_box:
-            for detail in details_box:
-                # print('title_detail', detail)
-                # 栏目等级
-                item['column_level'] = '--'
-                # 详情
-                item['title_detail'] = detail.xpath('./div[@class="tit"]/a/text()').extract_first()
-                # 详情链接
-                item['link_url'] = response.urljoin(detail.xpath('./div[@class="tit"]/a[1]/@href').extract_first())
-                # print("item['link_url']---box", item['link_url'])
-                # 图片url
-                item['img_url'] = detail.xpath('./div[@class="img"]/a/img/@src').extract_first()
-                # 发布时间
-                self.get_release_time(item)
-                if item['link_url']:
-                    yield scrapy.Request(
-                        method="GET",
-                        url=item['link_url'],
-                        callback=self.parse_detail,
-                        meta={'item': deepcopy(item)}
-                    )
-
         # 秀场类数据
         details_focus_show = response.xpath('//*[@id="fullImgBox"]/div[contains(@class, "full")]')
         if details_focus_show:
+            # fashion栏数据
+            details_box_show = response.xpath('//div[contains(@class, "lcn-1")]/dl')
+            if details_box_show:
+                for detail in details_box_show:
+                    # 栏目等级
+                    item['column_level'] = '--'
+                    # 详情标题
+                    item['title_detail'] = detail.xpath('./dd[1]/a/text()').extract_first()
+                    # 详情链接
+                    item['link_url'] = response.urljoin(detail.xpath('./dd[1]/a/@href').extract_first())
+                    # print("item['link_url']", item['link_url'])
+                    # 图片url
+                    item['img_url'] = detail.xpath('./dt/a/img/@src').extract_first()
+                    # 发布时间
+                    self.get_release_time(item)
+                    # print(item['release_time'])
+                    if item['link_url']:
+                        yield scrapy.Request(
+                            method="GET",
+                            url=item['link_url'],
+                            callback=self.parse_detail,
+                            meta={'item': deepcopy(item)}
+                        )
+            # 热门事件栏数据
+            details_fashion_show = response.xpath('//*[@id="zIndexB"]/dl')
+            if details_fashion_show:
+                for detail in details_fashion_show:
+                    # 热门分类标题
+                    hot_title = detail.xpath('./dd[1]/a/text()').extract_first()
+                    # print("hot_title", hot_title)
+                    if '巴黎' in hot_title:
+                        # 详情链接
+                        hot_url = response.urljoin(detail.xpath('./dd[1]/a/@href').extract_first())
+                        # print("hot_url", hot_url)
+                        if hot_url:
+                            yield scrapy.Request(
+                                method="GET",
+                                url=hot_url,
+                                callback=self.parse_hot_detail,
+                                meta={'item': deepcopy(item)}
+                            )
+            # 右边时装周数据
+            details_right_show = response.xpath('//*[@id="right_fixed"]')
+            if details_right_show:
+                # 右边时装周数据详情链接
+                right_url = response.urljoin(details_right_show.xpath('./a/@href').extract_first())
+                if right_url:
+                    yield scrapy.Request(
+                        method="GET",
+                        url=right_url,
+                        callback=self.parse_right_show,
+                        meta={'item': deepcopy(item)}
+                    )
             # 焦点栏数据
             for index, detail in enumerate(details_focus_show):
                 # 栏目等级
@@ -153,63 +209,121 @@ class YokaclubSpider(scrapy.Spider):
                         callback=self.parse_detail,
                         meta={'item': deepcopy(item)}
                     )
-            # fashion栏数据
-            details_box_show = response.xpath('//div[@class="lcn-1"]')
-            if details_box_show:
-                for detail in details_box_show:
-                    # 栏目等级
-                    item['column_level'] = '--'
-                    # 详情标题
-                    item['title_detail'] = detail.xpath('./dl/dd[1]/a/text()').extract_first()
-                    # 详情链接
-                    item['link_url'] = response.urljoin(detail.xpath('./dl/dd[1]/a/@href').extract_first())
-                    # print("item['link_url']", item['link_url'])
-                    # 图片url
-                    item['img_url'] = detail.xpath('./dl/dt/a/img/@src').extract_first()
-                    # 发布时间
-                    self.get_release_time(item)
-                    # print(item['release_time'])
-                    if item['link_url']:
-                        yield scrapy.Request(
-                            method="GET",
-                            url=item['link_url'],
-                            callback=self.parse_detail,
-                            meta={'item': deepcopy(item)}
-                        )
-            # 热门事件栏数据
-            details_fashion_show = response.xpath('//*[@id="zIndexB"]')
-            if details_fashion_show:
-                for detail in details_fashion_show:
-                    # 热门分类标题
-                    hot_title = detail.xpath('./dl/dd[1]/a/text()').extract_first()
-                    # print("hot_title", hot_title)
-                    # if '巴黎' in hot_title:
-                    # 详情链接
-                    hot_url = response.urljoin(detail.xpath('./dl/dd[1]/a/@href').extract_first())
-                    # print("hot_url", hot_url)
-                    if hot_url:
-                        yield scrapy.Request(
-                            method="GET",
-                            url=hot_url,
-                            callback=self.parse_hot_detail,
-                            meta={'item': deepcopy(item)}
-                        )
+
+    def parse_right_show(self, response):
+        item = response.meta['item']
+        # right-grid栏数据
+        grid_detail = response.xpath('//*[@id="grid"]/li')
+        if grid_detail:
+            for detail in grid_detail:
+                # 栏目等级
+                item['column_level'] = '--'
+                # 详情标题
+                item['title_detail'] = detail.xpath('./a/h3/text()').extract_first()
+                # 详情链接
+                item['link_url'] = response.urljoin(detail.xpath('./a/@href').extract_first())
+                # print("item['link_url']", item['link_url'])
+                # 图片url
+                item['img_url'] = detail.xpath('./a/img/@src').extract_first()
+                # 发布时间
+                # release_time = response.xpath('/html/body/div/div/div[2]/div[1]/div/i/text()').extract_first()
+                self.get_release_time(item)
+                # print(item['release_time'])
+                if item['link_url']:
+                    yield scrapy.Request(
+                        method="GET",
+                        url=item['link_url'],
+                        callback=self.parse_detail,
+                        meta={'item': deepcopy(item)}
+                    )
+        # right-秀场直击数据
+        right_show_now = response.xpath('//*[@id="mCSB_1_container"]/li')
+        if right_show_now:
+            for detail in right_show_now:
+                # 栏目等级
+                item['column_level'] = '--'
+                # 详情标题
+                item['title_detail'] = detail.xpath('./a/text()').extract_first()
+                # 详情链接
+                item['link_url'] = response.urljoin(detail.xpath('./a/@href').extract_first())
+                # print("item['link_url']", item['link_url'])
+                # 图片url
+                item['img_url'] = detail.xpath('./a/@data-pic').extract_first()
+                # 发布时间
+                # release_time = response.xpath('/html/body/div/div/div[2]/div[1]/div/i/text()').extract_first()
+                self.get_release_time(item)
+                # print(item['release_time'])
+                if item['link_url']:
+                    yield scrapy.Request(
+                        method="GET",
+                        url=item['link_url'],
+                        callback=self.parse_detail,
+                        meta={'item': deepcopy(item)}
+                    )
+        # right-推荐编辑栏目数据
+        right_show_now = response.xpath('//div[@class="showRec"]/ul/li')
+        if right_show_now:
+            for detail in right_show_now:
+                # 栏目等级
+                item['column_level'] = '--'
+                # 详情标题
+                item['title_detail'] = detail.xpath('./p/a/text()').extract_first()
+                # 详情链接
+                item['link_url'] = response.urljoin(detail.xpath('./p/a/@href').extract_first())
+                # print("item['link_url']", item['link_url'])
+                # 图片url
+                item['img_url'] = detail.xpath('./a/img/@src').extract_first()
+                # 发布时间
+                # release_time = response.xpath('/html/body/div/div/div[2]/div[1]/div/i/text()').extract_first()
+                self.get_release_time(item)
+                # print(item['release_time'])
+                if item['link_url']:
+                    yield scrapy.Request(
+                        method="GET",
+                        url=item['link_url'],
+                        callback=self.parse_detail,
+                        meta={'item': deepcopy(item)}
+                    )
+        # right-焦点栏目信息
+        right_show_focus_detail = response.xpath('//div[@class="bx-viewport"]/ul/li')
+        if right_show_focus_detail:
+            for detail in right_show_focus_detail:
+                # 栏目等级
+                item['column_level'] = '一级栏目'
+                # 详情标题
+                item['title_detail'] = ' '.join([i.strip() for i in detail.xpath('./a/dl//text()').extract()])
+                # 详情链接
+                item['link_url'] = response.urljoin(detail.xpath('./a/@href').extract_first())
+                # print("item['link_url']", item['link_url'])
+                # 图片url
+                item['img_url'] = detail.xpath('./a/img/@src').extract_first()
+                # 发布时间
+                # release_time = response.xpath('/html/body/div/div/div[2]/div[1]/div/i/text()').extract_first()
+                self.get_release_time(item)
+                # print(item['release_time'])
+                if item['link_url']:
+                    yield scrapy.Request(
+                        method="GET",
+                        url=item['link_url'],
+                        callback=self.parse_detail,
+                        meta={'item': deepcopy(item)}
+                    )
 
     def parse_hot_detail(self, response):
         """热门栏目数据"""
         item = response.meta['item']
-        hot_detail_list = response.xpath('//div[@class="filterResultList"]')
+        hot_detail_list = response.xpath('//div[@class="filterResultList"]/ul/li')
         if hot_detail_list:
             for detail in hot_detail_list:
                 # 栏目等级
                 item['column_level'] = '--'
                 # 详情标题
-                item['title_detail'] = detail.xpath('./ul/li/h3/a/text()').extract_first()
+                item['title_detail'] = detail.xpath('./h3/a/text()').extract_first()
                 # 详情链接
-                item['link_url'] = response.urljoin(detail.xpath('/ul/li/div/a/@href').extract_first())
+                item['link_url'] = response.urljoin(detail.xpath('/div/a/@href').extract_first())
                 # print("hot item['link_url']", item['link_url'])
                 # 图片url
-                item['img_url'] = detail.xpath('./ul/li/div/a/img/@src').extract_first()
+                item['img_url'] = detail.xpath('./div/a/img/@src').extract_first()
                 # 发布时间
                 # release_time = response.xpath('/html/body/div/div/div[2]/div[1]/div/i/text()').extract_first()
                 self.get_release_time(item)
@@ -268,7 +382,6 @@ class YokaclubSpider(scrapy.Spider):
             # 详情页图片地址
             detail_img_url = response.xpath('//*[@id="list"]/ul/li/a/img/@src').extract()
             item['detail_img_url'] = ';'.join([i.strip() for i in detail_img_url])
-            # print("item['detail_img_url']", item['detail_img_url'])
             next_url_list = response.xpath('//*[@id="list"]/ul/li/a/@href').extract()
             if next_url_list:
                 for i in range(1, len(next_url_list)):
@@ -299,4 +412,5 @@ class YokaclubSpider(scrapy.Spider):
             else:
                 item['release_time'] = self.nowData
         except Exception as e:
-            print(e)
+            print("yoka_spider.spiders.yokaClub.YokaclubSpider.get_release_time:{}".format(e))
+            logging.info(e)
