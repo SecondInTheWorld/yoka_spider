@@ -12,8 +12,8 @@ from yoka_spider.items import YokaSpiderItem
 from yoka_spider.log import logger
 
 
-class YokaclubSpider(scrapy.Spider):
-    name = 'yokaClub'
+class YokaBeautySpider(scrapy.Spider):
+    name = 'yokaBeauty'
     allowed_domains = ['yoka.com']
 
     def start_requests(self):
@@ -36,13 +36,13 @@ class YokaclubSpider(scrapy.Spider):
                             "Connection": " keep-alive"}
             # for key, value in url_list.items():
             # 一级栏目
-            # item = YokaSpiderItem()
-            item = {}
+            item = YokaSpiderItem()
+            # item = {}
             item['site_name'] = '优卡网'
             item['domain'] = 'www.yoka.com'
             item['domain_url'] = 'http://www.yoka.com/'
-            item['first_title'] = '优卡网-首页-' + url_list['http://fashion.yoka.com/']
-            item['first_title_url'] = 'http://fashion.yoka.com/'
+            item['first_title'] = '优卡网-首页-' + url_list['http://beauty.yoka.com/']
+            item['first_title_url'] = 'http://beauty.yoka.com/'
             yield scrapy.Request(
                 method="GET",
                 url=item['first_title_url'],
@@ -50,10 +50,10 @@ class YokaclubSpider(scrapy.Spider):
                 callback=self.parse,
                 meta={'item': item}
             )
-            print('时尚栏目数据抓取完成-----------------------------------')
+            print('美容栏目url请求发送完成-----------------------------------')
         except Exception as e:
-            print("start_requests:{}".format(e))
-            logger.info("start_requests:{}".format(e))
+            print("YokaBeautySpider.start_requests:{}".format(e))
+            logger.info("YokaBeautySpider.start_requests:{}".format(e))
 
     def parse(self, response):
         """获取第二层栏目信息"""
@@ -86,8 +86,6 @@ class YokaclubSpider(scrapy.Spider):
                 # print('title_detail', detail)
                 # 栏目等级
                 item['column_level'] = '--'
-                # 详情
-                item['title_detail'] = detail.xpath('./div[@class="tit"]/a/text()').extract_first()
                 # 详情链接
                 item['link_url'] = response.urljoin(detail.xpath('./div[@class="tit"]/a[1]/@href').extract_first())
                 # print("item['link_url']---box", item['link_url'])
@@ -131,20 +129,20 @@ class YokaclubSpider(scrapy.Spider):
             with open('focus_kong.txt', 'a') as f:
                 f.write(str(response.url) + '\n')
 
-        # 秀场类数据
-        # fashion栏数据
-        details_box_show = response.xpath('//div[contains(@class, "lcn-1")]/dl')
+        # 获取评测/试用类数据
+        # 新品评测栏目数据
+        details_box_show = response.xpath('//div[@class="newEvalu"]/dl')
         if details_box_show:
             for detail in details_box_show:
                 # 栏目等级
                 item['column_level'] = '--'
                 # 详情标题
-                item['title_detail'] = detail.xpath('./dd[1]/a/text()').extract_first()
+                item['title_detail'] = detail.xpath('./dd/h3/a/text()').extract_first()
                 # 详情链接
-                item['link_url'] = response.urljoin(detail.xpath('./dd[1]/a/@href').extract_first())
+                item['link_url'] = response.urljoin(detail.xpath('./dt/a/@href').extract_first())
                 # print("item['link_url']", item['link_url'])
                 # 图片url
-                item['img_url'] = detail.xpath('./dt/a/img/@src').extract_first()
+                item['img_url'] = response.urljoin(detail.xpath('./dt/a/img/@src').extract_first())
                 # 发布时间
                 self.get_release_time(item)
                 # print(item['release_time'])
@@ -185,7 +183,7 @@ class YokaclubSpider(scrapy.Spider):
                         callback=self.parse_right_show,
                         meta={'item': deepcopy(item)}
                     )
-            # 焦点栏数据
+            # 各类焦点栏数据
             details_focus_show = response.xpath('//*[@id="fullImgBox"]/div[contains(@class, "full")]')
             if details_focus_show:
                 for index, detail in enumerate(details_focus_show):
@@ -262,7 +260,7 @@ class YokaclubSpider(scrapy.Spider):
                         callback=self.parse_detail,
                         meta={'item': deepcopy(item)}
                     )
-        # 推荐编辑栏目数据
+        # right-推荐编辑栏目数据
         right_show_now = response.xpath('//div[@class="showRec"]/ul/li')
         if right_show_now:
             for detail in right_show_now:
@@ -342,7 +340,13 @@ class YokaclubSpider(scrapy.Spider):
         # item = YokaSpiderItem()
         item = response.meta['item']
         auther = response.xpath('/html/body/div/div/div[2]/div/dl/dd/i/text()').extract_first()
+        if not auther:
+            auther = response.xpath('//div[@class="g-main fleft"]/h1/text()')
         if auther:
+            # 标题详情
+            item['title_detail'] = response.xpath('//div[@class="gLeft"]/h1/text()').extract_first()
+            if not item['title_detail']:
+                response.xpath('//div[@class="g-main fleft"]/h1/text()').extract_first()
             # 编辑者
             item['compiler'] = auther
             # 来源于
@@ -364,6 +368,8 @@ class YokaclubSpider(scrapy.Spider):
             item['detail_img_url'] = ';'.join([i.strip() for i in detail_img_url])
             # print("item['detail_img_url']", item['detail_img_url'])
             # print('item', item)
+            # if next_url:
+            #     pass
             yield item
         else:
             # 无编辑者（轮播布局）
@@ -414,11 +420,7 @@ class YokaclubSpider(scrapy.Spider):
             else:
                 item['release_time'] = self.nowData
         except Exception as e:
-            print('link_url', item['link_url'])
-            print("item", item)
             item['release_time'] = self.nowData
-            with open('error_detail_url.txt', 'a') as f:
-                f.write((str(item)) + '\n')
             print("get_release_time:{}".format(e))
             logger.info("get_release_time:{}".format(e))
 

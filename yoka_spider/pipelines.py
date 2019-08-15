@@ -9,6 +9,8 @@ import pymysql
 
 
 class YokaDetailPipeline(object):
+    """将详情数据插入到mysql数据库中"""
+
     def __init__(self):
         # 1. 建立数据库的连接
         self.connect = pymysql.connect(
@@ -24,28 +26,49 @@ class YokaDetailPipeline(object):
 
     def process_item(self, item, spider):
         try:
-            # 3. 将Item数据放入数据库，默认是同步写入。
-            # insert_sql = "insert ignore into job(zwmc, zwxz, zpyq, gwyq) VALUES ('%s', '%s', '%s', '%s')" % (
-            # item['zwmc'], item['zwxz'], item['zpyq'], item['gwyq'])
-            insert_sql = """insert ignore into yoka_detail(site_name, domain, domain_url, 
-                            first_title, first_title_url, second_title, second_title_url, column_level, 
-                            price, title_detail, link_url, img_url, compiler, come_from, release_time, 
-                            content_detail, detail_img_url) VALUES ('{site_name}', '{domain}', '{domain_url}', 
-                            '{first_title}', '{first_title_url}', '{second_title}', '{second_title_url}', 
-                            '{column_level}', '{price}', '{title_detail}', '{link_url}', '{img_url}', '{compiler}', 
-                            '{come_from}', '{release_time}', '{content_detail}', '{detail_img_url}')""".format(
-                site_name=item['site_name'], domain=item['domain'], domain_url=item['domain_url'],
-                first_title=item['first_title'], first_title_url=item['first_title_url'], second_title=item['second_title'],
-                second_title_url=item['second_title_url'], column_level=item['column_level'], price=2400,
-                title_detail=item['title_detail'], link_url=item['link_url'], img_url=item['img_url'],
-                compiler=item['compiler'], come_from=item['come_from'], release_time=item['release_time'],
-                content_detail=item['content_detail'], detail_img_url=item['detail_img_url'])
+            if spider.name == 'yokaClub':
+                # 3. 将Item数据放入数据库，默认是同步写入。
+                # insert_sql = "insert ignore into job(zwmc, zwxz, zpyq, gwyq) VALUES ('%s', '%s', '%s', '%s')" % (
+                # item['zwmc'], item['zwxz'], item['zpyq'], item['gwyq'])
+                insert_sql = """insert ignore into yoka_club_detail(site_name, domain, domain_url, 
+                                first_title, first_title_url, second_title, second_title_url, column_level, 
+                                price, title_detail, link_url, img_url, compiler, come_from, release_time, 
+                                content_detail, detail_img_url) VALUES ('{site_name}', '{domain}', '{domain_url}', 
+                                '{first_title}', '{first_title_url}', '{second_title}', '{second_title_url}', 
+                                '{column_level}', '{price}', '{title_detail}', '{link_url}', '{img_url}', '{compiler}', 
+                                '{come_from}', '{release_time}', '{content_detail}', '{detail_img_url}')""".format(
+                    site_name=item['site_name'], domain=item['domain'], domain_url=item['domain_url'],
+                    first_title=item['first_title'], first_title_url=item['first_title_url'],
+                    second_title=item['second_title'],
+                    second_title_url=item['second_title_url'], column_level=item['column_level'], price=2400,
+                    title_detail=item['title_detail'], link_url=item['link_url'], img_url=item['img_url'],
+                    compiler=item['compiler'], come_from=item['come_from'], release_time=item['release_time'],
+                    content_detail=item['content_detail'], detail_img_url=item['detail_img_url'])
+
+            elif spider.name == 'yokaBeauty':
+                insert_sql = """insert ignore into yoka_beauty_detail(site_name, domain, domain_url, 
+                                first_title, first_title_url, second_title, second_title_url, column_level, 
+                                price, title_detail, link_url, img_url, compiler, come_from, release_time, 
+                                content_detail, detail_img_url) VALUES ('{site_name}', '{domain}', '{domain_url}', 
+                                '{first_title}', '{first_title_url}', '{second_title}', '{second_title_url}', 
+                                '{column_level}', '{price}', '{title_detail}', '{link_url}', '{img_url}', '{compiler}', 
+                                '{come_from}', '{release_time}', '{content_detail}', '{detail_img_url}')""".format(
+                    site_name=item['site_name'], domain=item['domain'], domain_url=item['domain_url'],
+                    first_title=item['first_title'], first_title_url=item['first_title_url'],
+                    second_title=item['second_title'],
+                    second_title_url=item['second_title_url'], column_level=item['column_level'], price=2400,
+                    title_detail=item['title_detail'], link_url=item['link_url'], img_url=item['img_url'],
+                    compiler=item['compiler'], come_from=item['come_from'], release_time=item['release_time'],
+                    content_detail=item['content_detail'], detail_img_url=item['detail_img_url'])
+            else:
+                insert_sql = ''
             # print(insert_sql)
             self.cursor.execute(insert_sql)
             # 4. 提交操作
             self.connect.commit()
+
         except Exception as e:
-            print("yoka_spider.pipelines.YokaDetailPipeline.process_item:{}".format(e))
+            print("YokaClubDetailPipeline.process_item:{}".format(e))
 
     def close_spider(self, spider):
         self.cursor.close()
@@ -53,20 +76,17 @@ class YokaDetailPipeline(object):
 
 
 class YokaDetailPipelineJson(object):
-    def __init__(self):
-        # super(YokaDetailPipeline).__init__()
-        # self.price = self.get_map_price()
-        pass
-
     def open_spider(self, spider):
         # 1. 打开文件
         if spider.name == 'yokaClub':
             self.f = open('yokaClub.json', 'w', encoding='utf8')
+        elif spider.name == 'yokaBeauty':
+            self.f = open('yokaBeauty.json', 'w', encoding='utf8')
 
     def process_item(self, item, spider):
         """将每一个Item数据交由该方法进行处理"""
         # 2. 写数据
-        if spider.name == 'yokaClub':
+        if spider.name in ['yokaClub', 'yokaBeauty']:
             # 将数据以json格式写入文件
             json.dump(dict(item), self.f, ensure_ascii=False)
             # 每一个条数据占一行
@@ -74,9 +94,31 @@ class YokaDetailPipelineJson(object):
         return item
 
     def close_spider(self, spider):
-        if spider.name == 'yokaClub':
+        if spider.name in ['yokaClub', 'yokaBeauty']:
             # 3. 关闭文件
             self.f.close()
+
+
+# class YokaBeautyDetailPipelineJson(object):
+#     def open_spider(self, spider):
+#         # 1. 打开文件
+#         if spider.name == 'yokaBeauty':
+#             self.f = open('yokaBeauty.json', 'w', encoding='utf8')
+#
+#     def process_item(self, item, spider):
+#         """将每一个Item数据交由该方法进行处理"""
+#         # 2. 写数据
+#         if spider.name == 'yokaBeauty':
+#             # 将数据以json格式写入文件
+#             json.dump(dict(item), self.f, ensure_ascii=False)
+#             # 每一个条数据占一行
+#             self.f.write('\n')
+#         return item
+#
+#     def close_spider(self, spider):
+#         if spider.name == 'yokaBeauty':
+#             # 3. 关闭文件
+#             self.f.close()
 
         # def get_map_price(self):
         #     """
