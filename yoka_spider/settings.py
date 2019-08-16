@@ -72,8 +72,8 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   # 'yoka_spider.pipelines.YokaDetailPipeline': 300,
-   'yoka_spider.pipelines.YokaDetailPipelineJson': 366
+   'yoka_spider.pipelines.YokaDetailPipeline': 300,
+   # 'yoka_spider.pipelines.YokaDetailPipelineJson': 366
 
 }
 

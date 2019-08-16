@@ -62,12 +62,15 @@ class YokaDetailPipeline(object):
                     content_detail=item['content_detail'], detail_img_url=item['detail_img_url'])
             else:
                 insert_sql = ''
-            # print(insert_sql)
+            # insert_sql = insert_sql.encode('gbk', 'ignore')
+            print(insert_sql)
+            print("item", item)
             self.cursor.execute(insert_sql)
             # 4. 提交操作
             self.connect.commit()
-
         except Exception as e:
+            with open('error_beauty.txt', 'a') as f:
+                f.write((str(item)) + '\n')
             print("YokaClubDetailPipeline.process_item:{}".format(e))
 
     def close_spider(self, spider):
@@ -98,27 +101,26 @@ class YokaDetailPipelineJson(object):
             # 3. 关闭文件
             self.f.close()
 
-
-# class YokaBeautyDetailPipelineJson(object):
-#     def open_spider(self, spider):
-#         # 1. 打开文件
-#         if spider.name == 'yokaBeauty':
-#             self.f = open('yokaBeauty.json', 'w', encoding='utf8')
-#
-#     def process_item(self, item, spider):
-#         """将每一个Item数据交由该方法进行处理"""
-#         # 2. 写数据
-#         if spider.name == 'yokaBeauty':
-#             # 将数据以json格式写入文件
-#             json.dump(dict(item), self.f, ensure_ascii=False)
-#             # 每一个条数据占一行
-#             self.f.write('\n')
-#         return item
-#
-#     def close_spider(self, spider):
-#         if spider.name == 'yokaBeauty':
-#             # 3. 关闭文件
-#             self.f.close()
+        # class YokaBeautyDetailPipelineJson(object):
+        #     def open_spider(self, spider):
+        #         # 1. 打开文件
+        #         if spider.name == 'yokaBeauty':
+        #             self.f = open('yokaBeauty.json', 'w', encoding='utf8')
+        #
+        #     def process_item(self, item, spider):
+        #         """将每一个Item数据交由该方法进行处理"""
+        #         # 2. 写数据
+        #         if spider.name == 'yokaBeauty':
+        #             # 将数据以json格式写入文件
+        #             json.dump(dict(item), self.f, ensure_ascii=False)
+        #             # 每一个条数据占一行
+        #             self.f.write('\n')
+        #         return item
+        #
+        #     def close_spider(self, spider):
+        #         if spider.name == 'yokaBeauty':
+        #             # 3. 关闭文件
+        #             self.f.close()
 
         # def get_map_price(self):
         #     """

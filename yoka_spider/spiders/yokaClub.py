@@ -93,15 +93,16 @@ class YokaclubSpider(scrapy.Spider):
                 # print("item['link_url']---box", item['link_url'])
                 # 图片url
                 item['img_url'] = detail.xpath('./div[@class="img"]/a/img/@src').extract_first()
-                # 发布时间
-                self.get_release_time(item)
                 if item['link_url']:
-                    yield scrapy.Request(
-                        method="GET",
-                        url=item['link_url'],
-                        callback=self.parse_detail,
-                        meta={'item': deepcopy(item)}
-                    )
+                    # 发布时间
+                    res = self.get_release_time(item)
+                    if self.nowData[0:7] == res:
+                        yield scrapy.Request(
+                            method="GET",
+                            url=item['link_url'],
+                            callback=self.parse_detail,
+                            meta={'item': deepcopy(item)}
+                        )
 
         # 获取有焦点栏详情标题等
         details_focus = response.xpath('//*[@id="fFocus"]/div/div[contains(@class,"item")]')
@@ -116,16 +117,16 @@ class YokaclubSpider(scrapy.Spider):
                 # print("item['link_url']", item['link_url'])
                 # 图片url
                 item['img_url'] = detail.xpath('./a/img/@src').extract_first()
-                # 发布时间
-                self.get_release_time(item)
-                # print(item['release_time'])
                 if item['link_url']:
-                    yield scrapy.Request(
-                        method="GET",
-                        url=item['link_url'],
-                        callback=self.parse_detail,
-                        meta={'item': deepcopy(item)}
-                    )
+                    # 发布时间
+                    res = self.get_release_time(item)
+                    if self.nowData[0:7] == res:
+                        yield scrapy.Request(
+                            method="GET",
+                            url=item['link_url'],
+                            callback=self.parse_detail,
+                            meta={'item': deepcopy(item)}
+                        )
                 pass
         else:
             with open('focus_kong.txt', 'a') as f:
@@ -145,16 +146,16 @@ class YokaclubSpider(scrapy.Spider):
                 # print("item['link_url']", item['link_url'])
                 # 图片url
                 item['img_url'] = detail.xpath('./dt/a/img/@src').extract_first()
-                # 发布时间
-                self.get_release_time(item)
-                # print(item['release_time'])
                 if item['link_url']:
-                    yield scrapy.Request(
-                        method="GET",
-                        url=item['link_url'],
-                        callback=self.parse_detail,
-                        meta={'item': deepcopy(item)}
-                    )
+                    # 发布时间
+                    res = self.get_release_time(item)
+                    if self.nowData[0:7] == res:
+                        yield scrapy.Request(
+                            method="GET",
+                            url=item['link_url'],
+                            callback=self.parse_detail,
+                            meta={'item': deepcopy(item)}
+                        )
             # 热门事件栏数据
             details_fashion_show = response.xpath('//*[@id="zIndexB"]/dl')
             if details_fashion_show:
@@ -200,17 +201,16 @@ class YokaclubSpider(scrapy.Spider):
                     res = detail.xpath('//*[@id="fullImgBox"]/div/@style').extract_first().strip()
                     regex = "url\(([\s\S]*?)\)"
                     item['img_url'] = re.search(regex, res).group(1)
-                    # 发布时间
-                    # release_time = response.xpath('/html/body/div/div/div[2]/div[1]/div/i/text()').extract_first()
-                    self.get_release_time(item)
-                    # print(item['release_time'])
                     if item['link_url']:
-                        yield scrapy.Request(
-                            method="GET",
-                            url=item['link_url'],
-                            callback=self.parse_detail,
-                            meta={'item': deepcopy(item)}
-                        )
+                        # 发布时间
+                        res = self.get_release_time(item)
+                        if self.nowData[0:7] == res:
+                            yield scrapy.Request(
+                                method="GET",
+                                url=item['link_url'],
+                                callback=self.parse_detail,
+                                meta={'item': deepcopy(item)}
+                            )
 
     def parse_right_show(self, response):
         item = response.meta['item']
@@ -227,17 +227,16 @@ class YokaclubSpider(scrapy.Spider):
                 # print("item['link_url']", item['link_url'])
                 # 图片url
                 item['img_url'] = detail.xpath('./a/img/@src').extract_first()
-                # 发布时间
-                # release_time = response.xpath('/html/body/div/div/div[2]/div[1]/div/i/text()').extract_first()
-                self.get_release_time(item)
-                # print(item['release_time'])
                 if item['link_url']:
-                    yield scrapy.Request(
-                        method="GET",
-                        url=item['link_url'],
-                        callback=self.parse_detail,
-                        meta={'item': deepcopy(item)}
-                    )
+                    # 发布时间
+                    res = self.get_release_time(item)
+                    if self.nowData[0:7] == res:
+                        yield scrapy.Request(
+                            method="GET",
+                            url=item['link_url'],
+                            callback=self.parse_detail,
+                            meta={'item': deepcopy(item)}
+                        )
         # right-秀场直击数据
         right_show_now = response.xpath('//*[@id="mCSB_1_container"]/li')
         if right_show_now:
@@ -251,17 +250,16 @@ class YokaclubSpider(scrapy.Spider):
                 # print("item['link_url']", item['link_url'])
                 # 图片url
                 item['img_url'] = detail.xpath('./a/@data-pic').extract_first()
-                # 发布时间
-                # release_time = response.xpath('/html/body/div/div/div[2]/div[1]/div/i/text()').extract_first()
-                self.get_release_time(item)
-                # print(item['release_time'])
                 if item['link_url']:
-                    yield scrapy.Request(
-                        method="GET",
-                        url=item['link_url'],
-                        callback=self.parse_detail,
-                        meta={'item': deepcopy(item)}
-                    )
+                    # 发布时间
+                    res = self.get_release_time(item)
+                    if self.nowData[0:7] == res:
+                        yield scrapy.Request(
+                            method="GET",
+                            url=item['link_url'],
+                            callback=self.parse_detail,
+                            meta={'item': deepcopy(item)}
+                        )
         # 推荐编辑栏目数据
         right_show_now = response.xpath('//div[@class="showRec"]/ul/li')
         if right_show_now:
@@ -275,17 +273,16 @@ class YokaclubSpider(scrapy.Spider):
                 # print("item['link_url']", item['link_url'])
                 # 图片url
                 item['img_url'] = detail.xpath('./a/img/@src').extract_first()
-                # 发布时间
-                # release_time = response.xpath('/html/body/div/div/div[2]/div[1]/div/i/text()').extract_first()
-                self.get_release_time(item)
-                # print(item['release_time'])
                 if item['link_url']:
-                    yield scrapy.Request(
-                        method="GET",
-                        url=item['link_url'],
-                        callback=self.parse_detail,
-                        meta={'item': deepcopy(item)}
-                    )
+                    # 发布时间
+                    res = self.get_release_time(item)
+                    if self.nowData[0:7] == res:
+                        yield scrapy.Request(
+                            method="GET",
+                            url=item['link_url'],
+                            callback=self.parse_detail,
+                            meta={'item': deepcopy(item)}
+                        )
         # right-焦点栏目信息
         right_show_focus_detail = response.xpath('//div[@class="bx-viewport"]/ul/li')
         if right_show_focus_detail:
@@ -299,17 +296,16 @@ class YokaclubSpider(scrapy.Spider):
                 # print("item['link_url']", item['link_url'])
                 # 图片url
                 item['img_url'] = detail.xpath('./a/img/@src').extract_first()
-                # 发布时间
-                # release_time = response.xpath('/html/body/div/div/div[2]/div[1]/div/i/text()').extract_first()
-                self.get_release_time(item)
-                # print(item['release_time'])
                 if item['link_url']:
-                    yield scrapy.Request(
-                        method="GET",
-                        url=item['link_url'],
-                        callback=self.parse_detail,
-                        meta={'item': deepcopy(item)}
-                    )
+                    # 发布时间
+                    res = self.get_release_time(item)
+                    if self.nowData[0:7] == res:
+                        yield scrapy.Request(
+                            method="GET",
+                            url=item['link_url'],
+                            callback=self.parse_detail,
+                            meta={'item': deepcopy(item)}
+                        )
 
     def parse_hot_detail(self, response):
         """热门栏目数据"""
@@ -326,15 +322,16 @@ class YokaclubSpider(scrapy.Spider):
                 # print("hot item['link_url']", item['link_url'])
                 # 图片url
                 item['img_url'] = detail.xpath('./div/a/img/@src').extract_first()
-                # 发布时间
-                # release_time = response.xpath('/html/body/div/div/div[2]/div[1]/div/i/text()').extract_first()
-                self.get_release_time(item)
-                yield scrapy.Request(
-                    method="GET",
-                    url=item['link_url'],
-                    callback=self.parse_detail,
-                    meta={'item': deepcopy(item)}
-                )
+                if item['link_url']:
+                    # 发布时间
+                    res = self.get_release_time(item)
+                    if self.nowData[0:7] == res:
+                        yield scrapy.Request(
+                            method="GET",
+                            url=item['link_url'],
+                            callback=self.parse_detail,
+                            meta={'item': deepcopy(item)}
+                        )
         pass
 
     def parse_detail(self, response):
@@ -409,15 +406,13 @@ class YokaclubSpider(scrapy.Spider):
             # 发布时间格式处理
             split_list = item['link_url'].split('/')
             if split_list:
-                release_time = split_list[5] + '-' + split_list[6][:2] + '-' + split_list[6][2:]
-                item['release_time'] = release_time if release_time else self.nowData
-            else:
-                item['release_time'] = self.nowData
+                release_time = split_list[5] + '-' + split_list[6][0:2] + '-' + split_list[6][2:4]
+                item['release_time'] = release_time
+                return release_time[0:7]
         except Exception as e:
-            print('link_url', item['link_url'])
             print("item", item)
             item['release_time'] = self.nowData
-            with open('error_detail_url.txt', 'a') as f:
+            with open('error_beauty_detail_url.txt', 'a') as f:
                 f.write((str(item)) + '\n')
             print("get_release_time:{}".format(e))
             logger.info("get_release_time:{}".format(e))
