@@ -60,6 +60,21 @@ class YokaDetailPipeline(object):
                     title_detail=item['title_detail'], link_url=item['link_url'], img_url=item['img_url'],
                     compiler=item['compiler'], come_from=item['come_from'], release_time=item['release_time'],
                     content_detail=item['content_detail'], detail_img_url=item['detail_img_url'])
+            elif spider.name == 'yokaHomePage':
+                insert_sql = """insert ignore into yoka_home_detail(site_name, domain, domain_url, 
+                                first_title, first_title_url, second_title, second_title_url, column_level, 
+                                price, title_detail, link_url, img_url, compiler, come_from, release_time, 
+                                content_detail, detail_img_url) VALUES ('{site_name}', '{domain}', '{domain_url}', 
+                                '{first_title}', '{first_title_url}', '{second_title}', '{second_title_url}', 
+                                '{column_level}', '{price}', '{title_detail}', '{link_url}', '{img_url}', '{compiler}', 
+                                '{come_from}', '{release_time}', '{content_detail}', '{detail_img_url}')""".format(
+                    site_name=item['site_name'], domain=item['domain'], domain_url=item['domain_url'],
+                    first_title=item['first_title'], first_title_url=item['first_title_url'],
+                    second_title=item['second_title'],
+                    second_title_url=item['second_title_url'], column_level=item['column_level'], price=2400,
+                    title_detail=item['title_detail'], link_url=item['link_url'], img_url=item['img_url'],
+                    compiler=item['compiler'], come_from=item['come_from'], release_time=item['release_time'],
+                    content_detail=item['content_detail'], detail_img_url=item['detail_img_url'])
             else:
                 insert_sql = ''
             # insert_sql = insert_sql.encode('gbk', 'ignore')
@@ -85,11 +100,13 @@ class YokaDetailPipelineJson(object):
             self.f = open('yokaClub.json', 'w', encoding='utf8')
         elif spider.name == 'yokaBeauty':
             self.f = open('yokaBeauty.json', 'w', encoding='utf8')
+        elif spider.name == 'yokaHomePage':
+            self.f = open('yokaHomePage.json', 'w', encoding='utf8')
 
     def process_item(self, item, spider):
         """将每一个Item数据交由该方法进行处理"""
         # 2. 写数据
-        if spider.name in ['yokaClub', 'yokaBeauty']:
+        if spider.name in ['yokaClub', 'yokaBeauty', 'yokaHomePage']:
             # 将数据以json格式写入文件
             json.dump(dict(item), self.f, ensure_ascii=False)
             # 每一个条数据占一行
@@ -97,7 +114,7 @@ class YokaDetailPipelineJson(object):
         return item
 
     def close_spider(self, spider):
-        if spider.name in ['yokaClub', 'yokaBeauty']:
+        if spider.name in ['yokaClub', 'yokaBeauty', 'yokaHomePage']:
             # 3. 关闭文件
             self.f.close()
 
