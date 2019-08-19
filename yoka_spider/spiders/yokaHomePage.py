@@ -477,6 +477,7 @@ class YokaHomePageSpider(scrapy.Spider):
                                 callback=self.parse_detail,
                                 meta={'item': deepcopy(item)}
                             )
+        beauty_data(response, item)
 
 
     def focus_down_rt_func(self, response):
@@ -499,7 +500,6 @@ class YokaHomePageSpider(scrapy.Spider):
                         callback=self.parse_detail,
                         meta={'item': deepcopy(item)}
                     )
-
 
 
     def parse_detail(self, response):
