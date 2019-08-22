@@ -28,6 +28,7 @@ class YokaBeautySpider(scrapy.Spider):
                         'http://brand.yoka.com/': '品牌'}
             # first_title = ['时尚', '美容', '奢华', '明星', '乐活', '男士', '视频', '独家', '社区', '品牌']
             self.nowData = str(datetime.datetime.now())[0:10]
+            self.getDataDate = ['2019-07']
             self.headers = {"Host": " www.yoka.com",
                             "User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv": "68.0) Gecko/20100101 Firefox/68.0",
                             "Accept": " text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -77,6 +78,33 @@ class YokaBeautySpider(scrapy.Spider):
     def parse_info(self, response):
         """获取内页信息"""
         item = response.meta['item']
+        # 获取有焦点栏详情标题等
+        details_focus = response.xpath('//*[@id="fFocus"]/div/div[contains(@class,"item")]')
+        if details_focus:
+            for index, detail in enumerate(details_focus):
+                # 栏目等级
+                item['column_level'] = '一级栏目'
+                # 详情标题
+                item['title_detail'] = ' '.join([i.strip() for i in detail.xpath('./a/dl//text()').extract()])
+                # 详情链接
+                item['link_url'] = response.urljoin(detail.xpath('./a[1]/@href').extract_first())
+                # print("item['link_url']", item['link_url'])
+                # 图片url
+                item['img_url'] = detail.xpath('./a/img/@src').extract_first()
+                if item['link_url']:
+                    # 发布时间
+                    res = self.get_release_time(item)
+                    if res[0:7] in self.getDataDate:
+                        yield scrapy.Request(
+                            method="GET",
+                            url=item['link_url'],
+                            callback=self.parse_detail,
+                            meta={'item': deepcopy(item)}
+                        )
+                pass
+        else:
+            with open('focus_kong.txt', 'a') as f:
+                f.write(str(response.url) + '\n')
         # 获取box栏详情
         details_box = response.xpath('//div[contains(@class,"g-list")]')
         # details_box_last = response.xpath('//*[@id="loadMoreBox"]/div')
@@ -95,41 +123,13 @@ class YokaBeautySpider(scrapy.Spider):
                 if item['link_url']:
                     # 发布时间
                     res = self.get_release_time(item)
-                    if self.nowData[0:7] == res:
+                    if res[0:7] in self.getDataDate:
                         yield scrapy.Request(
                             method="GET",
                             url=item['link_url'],
                             callback=self.parse_detail,
                             meta={'item': deepcopy(item)}
                         )
-
-        # 获取有焦点栏详情标题等
-        details_focus = response.xpath('//*[@id="fFocus"]/div/div[contains(@class,"item")]')
-        if details_focus:
-            for index, detail in enumerate(details_focus):
-                # 栏目等级
-                item['column_level'] = '一级栏目'
-                # 详情标题
-                item['title_detail'] = ' '.join([i.strip() for i in detail.xpath('./a/dl//text()').extract()])
-                # 详情链接
-                item['link_url'] = response.urljoin(detail.xpath('./a[1]/@href').extract_first())
-                # print("item['link_url']", item['link_url'])
-                # 图片url
-                item['img_url'] = detail.xpath('./a/img/@src').extract_first()
-                if item['link_url']:
-                    # 发布时间
-                    res = self.get_release_time(item)
-                    if self.nowData[0:7] == res:
-                        yield scrapy.Request(
-                            method="GET",
-                            url=item['link_url'],
-                            callback=self.parse_detail,
-                            meta={'item': deepcopy(item)}
-                        )
-                pass
-        else:
-            with open('focus_kong.txt', 'a') as f:
-                f.write(str(response.url) + '\n')
 
         # todo:获取评测类数据
         # 新品评测栏目数据
@@ -148,7 +148,7 @@ class YokaBeautySpider(scrapy.Spider):
                 if item['link_url']:
                     # 发布时间
                     res = self.get_release_time(item)
-                    if self.nowData[0:7] == res:
+                    if res[0:7] in self.getDataDate:
                         yield scrapy.Request(
                             method="GET",
                             url=item['link_url'],
@@ -171,7 +171,7 @@ class YokaBeautySpider(scrapy.Spider):
                     if item['link_url']:
                         # 发布时间
                         res = self.get_release_time(item)
-                        if self.nowData[0:7] == res:
+                        if res[0:7] in self.getDataDate:
                             yield scrapy.Request(
                                 method="GET",
                                 url=item['link_url'],
@@ -194,7 +194,7 @@ class YokaBeautySpider(scrapy.Spider):
                     if item['link_url']:
                         # 发布时间
                         res = self.get_release_time(item)
-                        if self.nowData[0:7] == res:
+                        if res[0:7] in self.getDataDate:
                             yield scrapy.Request(
                                 method="GET",
                                 url=item['link_url'],
@@ -281,7 +281,7 @@ class YokaBeautySpider(scrapy.Spider):
                     if item['link_url']:
                         # 发布时间
                         res = self.get_release_time(item)
-                        if self.nowData[0:7] == res:
+                        if res[0:7] in self.getDataDate:
                             yield scrapy.Request(
                                 method="GET",
                                 url=item['link_url'],
@@ -351,29 +351,16 @@ class YokaBeautySpider(scrapy.Spider):
         # item = YokaSpiderItem()
         item = response.meta['item']
         auther = response.xpath('/html/body/div/div/div[2]/div/dl/dd/i/text()').extract_first()
-        if not auther:
-            auther = response.xpath('//div[@class="g-main fleft"]/h1/text()')
         if auther:
-            # 标题详情
-            old_title_detail = item.get('title_detail')
-            try:
-                if not old_title_detail:
-                    title_detail = response.xpath('//div[@class="g-main fleft"]/h1/text()').extract_first()
-                    if not title_detail:
-                        title_detail = response.xpath('//div[@class="gLeft"]/h1/text()').extract_first()
-                    item['title_detail'] = old_title_detail + '-' + title_detail if old_title_detail else title_detail
-            except Exception as e:
-                print("YokaBeautySpider.parse_detail:{}".format(e))
-            item['title_detail'] = item.get('title_detail')[6:] if item.get('title_detail')[0:6] == r"\u200b" else item.get('title_detail')
+            # # 详情链接标题
+            if not item.get('title_detail'):
+                item['title_detail'] = response.xpath('//div[contains(@class, "g-content")]/div/h1/text()').extract_first()
             # 编辑者
             item['compiler'] = auther
             # 来源于
             from_text = response.xpath('//div[@class="infoTime"]/div/a/text()').extract_first()
             if not from_text:
                 from_text = response.xpath('//li[contains(text(),"来源于：")]/a/text()').extract_first()
-            # from_url = response.xpath('/html/body/div/div/div[2]/div/div/a/@href').extract_first()
-            # if from_url[0:4] != 'http':
-            #     from_url = 'http://www.yoka.com' + response.xpath('/html/body/div/div/div[2]/div/div/a/@href').extract_first()
             from_url = response.urljoin(response.xpath('//div[@class="infoTime"]/div/a/@href').extract_first())
             item['come_from'] = from_text + ':' + from_url
             # 内容详情
@@ -384,12 +371,11 @@ class YokaBeautySpider(scrapy.Spider):
             # 详情页图片地址
             detail_img_url = response.xpath('//div[@class="textCon"]/div/a/img/@src').extract()
             item['detail_img_url'] = ';'.join([i.strip() for i in detail_img_url])
-            # print("item['detail_img_url']", item['detail_img_url'])
             # print('item', item)
-            # if next_url:
-            #     pass
             yield item
         else:
+            if not item.get('title_detail'):
+                item['title_detail'] = response.xpath('//div[contains(@class, "g-content")]/div/h1/text()').extract_first()
             # 无编辑者（轮播布局）
             item['compiler'] = '--'
             # 来源于
@@ -443,6 +429,7 @@ class YokaBeautySpider(scrapy.Spider):
                 f.write((str(item)) + '\n')
             print("get_release_time:{}".format(e))
             logger.info("get_release_time:{}".format(e))
+        return []
 
 
 def get_time():

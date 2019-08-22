@@ -7,6 +7,7 @@
     <orderEntry type="jdk" jdkName="Python 3.6 (ourui_epaper-master-imf9ky3B)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="suning" />
+    <orderEntry type="module" module-name="ourui_epaper" />
   </component>
   <component name="TestRunnerService">
     <option name="PROJECT_TEST_RUNNER" value="Unittests" />

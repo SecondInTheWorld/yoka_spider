@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../ourui_epaper-master/ourui_epaper-master/.idea/ourui_epaper.iml" filepath="$PROJECT_DIR$/../ourui_epaper-master/ourui_epaper-master/.idea/ourui_epaper.iml" />
       <module fileurl="file://$PROJECT_DIR$/../suning/.idea/suning.iml" filepath="$PROJECT_DIR$/../suning/.idea/suning.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/yoka_spider.iml" filepath="$PROJECT_DIR$/.idea/yoka_spider.iml" />
     </modules>
