@@ -119,7 +119,7 @@ class YokaHomePageSpider(scrapy.Spider):
         focus_down_rt_url = response.xpath('//div[@class="ad_first"]/div/script/@src').extract_first()
         if focus_down_rt_url:
             # 栏目模块名称
-            item['second_title'] = '首页-焦点栏下右'
+            item['second_title'] = '首页-焦点栏下-右上'
             item['second_title_url'] = item['first_title_url']
             # 栏目等级
             item['column_level'] = '二级栏目'
@@ -130,56 +130,44 @@ class YokaHomePageSpider(scrapy.Spider):
                 meta={'item': deepcopy(item)}
             )
         else:
-            if not focus_down_rt_url:
-                focus_down_rt_url = response.xpath('//div[@class="ad_first"]/div/div/a/@href').extract_first()
-                # 栏目模块名称
-                item['second_title'] = '首页-焦点栏下右'
-                item['second_title_url'] = item['first_title_url']
-                # 栏目等级
-                item['column_level'] = '二级栏目'
-                # # 详情链接标题
-                # item['title_detail'] = response.xpath('//div[@class="top_r"]/div/a/em/text()').extract_first()
-                # 详情链接
-                item['link_url'] = response.urljoin(focus_down_rt_url)
-                # 图片url
-                item['img_url'] = response.xpath('//div[@class="ad_first"]/div/div/a/img/@src').extract_first()
-                if item['link_url']:
-                    # 发布时间
-                    res = self.get_release_time(item)
-                    if res:
-                        if res[0:4] in self.getDataDate:
-                            yield scrapy.Request(
-                                method="GET",
-                                url=item['link_url'],
-                                callback=self.parse_detail,
-                                meta={'item': deepcopy(item)}
-                            )
+            focus_down_rt_url = response.xpath('//div[@class="ad_first"]/div/div/a/@href').extract_first()
+            # 栏目模块名称
+            item['second_title'] = '首页-焦点栏下-右-上'
+            item['second_title_url'] = item['first_title_url']
+            # 栏目等级
+            item['column_level'] = '二级栏目'
+            # # 详情链接标题
+            # item['title_detail'] = response.xpath('//div[@class="top_r"]/div/a/em/text()').extract_first()
+            # 详情链接
+            item['link_url'] = response.urljoin(focus_down_rt_url)
+            # 图片url
+            item['img_url'] = response.xpath('//div[@class="ad_first"]/div/div/a/img/@src').extract_first()
+            if item['link_url']:
+                # 发布时间
+                res = self.get_release_time(item)
+                if res:
+                    if res[0:4] in self.getDataDate:
+                        yield scrapy.Request(
+                            method="GET",
+                            url=item['link_url'],
+                            callback=self.parse_detail,
+                            meta={'item': deepcopy(item)}
+                        )
         # 获取焦点栏下-右-中信息
         focus_down_rm = response.xpath('//div[@class="ad_first"]/ul/li')
-        if focus_down_rm:
-            for detail in focus_down_rm:
-                # 栏目模块名称
-                item['second_title'] = '首页-焦点栏下右'
-                item['second_title_url'] = item['first_title_url']
-                # 栏目等级
-                item['column_level'] = '二级栏目'
-                # 详情链接标题
-                item['title_detail'] = detail.xpath('./a/text()').extract_first()
-                # 详情链接
-                item['link_url'] = response.urljoin(detail.xpath('./a/@href').extract_first())
-                # 图片url
-                item['img_url'] = '--'
-                if item['link_url']:
-                    # 发布时间
-                    res = self.get_release_time(item)
-                    if res:
-                        if res[0:4] in self.getDataDate:
-                            yield scrapy.Request(
-                                method="GET",
-                                url=item['link_url'],
-                                callback=self.parse_detail,
-                                meta={'item': deepcopy(item)}
-                            )
+        for detail in focus_down_rm:
+            # 栏目模块名称
+            item['second_title'] = '首页-焦点栏下-右中'
+            item['second_title_url'] = item['first_title_url']
+            # 栏目等级
+            item['column_level'] = '二级栏目'
+            focus_down_rm_url = detail.xpath('./script/@src').extract_first()
+            yield scrapy.Request(
+                method="GET",
+                url=focus_down_rm_url,
+                callback=self.focus_down_rt_func,
+                meta={'item': deepcopy(item)}
+            )
         # 获取焦点栏下-右-下信息
         focus_down_rd = response.xpath('//*[@id="today_news"]/div')
         if focus_down_rd:
@@ -213,7 +201,7 @@ class YokaHomePageSpider(scrapy.Spider):
         if ad_l_url:
             for ad_url in ad_l_url:
                 # 栏目模块名称
-                item['second_title'] = '首页-广告栏-左'
+                item['second_title'] = '首页-独家策划上-广告栏-左'
                 item['second_title_url'] = item['first_title_url']
                 # 栏目等级
                 item['column_level'] = '二级栏目'
@@ -252,21 +240,20 @@ class YokaHomePageSpider(scrapy.Spider):
                                     meta={'item': deepcopy(item)}
                                 )
         # 广告栏-右信息
-        ad_r_url = response.xpath('//*[@id="firstFsR"]/div/div/script/@src')
+        ad_r_url = response.xpath('//*[@id="firstFsR"]/div/div/script/@src').extract_first()
         if ad_r_url:
-            for ad_url in ad_r_url:
-                # 栏目模块名称
-                item['second_title'] = '首页-广告栏-右'
-                item['second_title_url'] = item['first_title_url']
-                # 栏目等级
-                item['column_level'] = '二级栏目'
-                ad_url = response.xpath('//*[@id="firstFsR"]/div/div/script/@src').extract_first()
-                yield scrapy.Request(
-                    method="GET",
-                    url=ad_url,
-                    callback=self.focus_down_rt_func,
-                    meta={'item': deepcopy(item)}
-                )
+            # 栏目模块名称
+            item['second_title'] = '首页-广告栏-右'
+            item['second_title_url'] = item['first_title_url']
+            # 栏目等级
+            item['column_level'] = '二级栏目'
+            ad_url = response.urljoin(ad_r_url)
+            yield scrapy.Request(
+                method="GET",
+                url=ad_url,
+                callback=self.focus_down_rt_func,
+                meta={'item': deepcopy(item)}
+            )
 
         # todo:独家策划栏目信息
         # 独家策划栏目-左
@@ -297,32 +284,56 @@ class YokaHomePageSpider(scrapy.Spider):
                 item['detail_img_url'] = '--'
                 yield item
         # 独家策划栏目-右
-        exclusive_plans_r = response.xpath('//*[@id="try_scroll"]/div/div')
+        exclusive_plans_r = response.xpath('//div[@class="tag_try"]/div/span/text()').extract()
         if exclusive_plans_r:
-            for detail in exclusive_plans_r:
+            for second_title in exclusive_plans_r:
                 # 栏目模块名称
-                item['second_title'] = '首页-独家策划-右-热门试用/新平评测'
+                # second_title = planR.xpath('./span/text()').extract_first()
                 item['second_title_url'] = item['first_title_url']
                 # 栏目等级
                 item['column_level'] = '二级栏目'
-                # 详情链接标题
-                item['title_detail'] = detail.xpath('./a/div[contains(@class,"title")]/text()').extract_first()
-                # 详情链接
-                item['link_url'] = response.urljoin(detail.xpath('./a/@href').extract_first())
-                # 图片url
-                item['img_url'] = response.urljoin(detail.xpath('./a/div/img/@src').extract_first())
-                # print(item['img_url'])
-                # 发布时间
-                item['release_time'] = '--'
-                # 编辑者
-                item['compiler'] = '--'
-                # 来源于
-                item['come_from'] = '--'
-                # 内容详情
-                item['content_detail'] = '--'
-                # 详情页图片地址
-                item['detail_img_url'] = '--'
-                yield item
+                if second_title == '热门试用':
+                    item['second_title'] = '首页-独家策划-右-' + second_title
+                    for detail in response.xpath('//*[@id="try_scroll"]/div/div/a'):
+                        # 详情链接标题
+                        item['title_detail'] = detail.xpath('./div[@class="title fcut"]/text()').extract_first()
+                        # 详情链接
+                        item['link_url'] = response.urljoin(detail.xpath('./@href').extract_first())
+                        # 图片url
+                        item['img_url'] = response.urljoin(detail.xpath('./div/img/@src').extract_first())
+                        # print(item['img_url'])
+                        # 发布时间
+                        item['release_time'] = '--'
+                        # 编辑者
+                        item['compiler'] = '--'
+                        # 来源于
+                        item['come_from'] = '--'
+                        # 内容详情
+                        item['content_detail'] = '--'
+                        # 详情页图片地址
+                        item['detail_img_url'] = '--'
+                        yield item
+                elif second_title == '新品评测':
+                    item['second_title'] = '首页-独家策划-右-' + second_title
+                    for detail in response.xpath('//*[@id="pingce_scroll"]/div/div/a'):
+                        # 详情链接标题
+                        item['title_detail'] = detail.xpath('./div[contains(@class,"title")]/text()').extract_first()
+                        # 详情链接
+                        item['link_url'] = response.urljoin(detail.xpath('./@href').extract_first())
+                        # 图片url
+                        item['img_url'] = response.urljoin(detail.xpath('./div/img/@src').extract_first())
+                        # print(item['img_url'])
+                        if item['link_url']:
+                            # 发布时间
+                            res = self.get_release_time(item)
+                            if res:
+                                if res[0:4] in self.getDataDate:
+                                    yield scrapy.Request(
+                                        method="GET",
+                                        url=item['link_url'],
+                                        callback=self.parse_detail,
+                                        meta={'item': deepcopy(item)}
+                                    )
 
         # todo:时装FASHION/美容BEAUTY/明星STAR/奢华LUXURY/乐活LIFESTYLE/先锋红人栏目信息
         column_titles = response.xpath('//div[contains(@class, "g-title")]/div/strong/a/text()').extract()
@@ -569,11 +580,17 @@ class YokaHomePageSpider(scrapy.Spider):
         item = response.meta['item']
         # print(response.text)
         # 详情链接标题
-        # item['title_detail'] = response.xpath('//div/a/text()').extract_first()
+        item['title_detail'] = response.xpath('//div/a/text()').extract_first()
+        if not item['title_detail']:
+            item['title_detail'] = response.xpath('//a/text()').extract_first()
         # 详情链接
-        item['link_url'] = response.urljoin(response.xpath('//div/a/@href').extract_first())
+        item['link_url'] = response.urljoin(response.xpath('//a/@href').extract_first())
+        if not item['link_url']:
+            item['link_url'] = response.urljoin(response.xpath('//a/@href').extract_first())
         # 图片url
         item['img_url'] = response.urljoin(response.xpath('//div/a/img/@href').extract_first())
+        if not item['img_url']:
+            item['img_url'] = response.urljoin(response.xpath('//a/img/@href').extract_first())
         if item['link_url']:
             # 发布时间
             res = self.get_release_time(item)
@@ -586,16 +603,19 @@ class YokaHomePageSpider(scrapy.Spider):
                         meta={'item': deepcopy(item)}
                     )
 
-
     def parse_detail(self, response):
         """获取详情内容和发布时间"""
         # item = YokaSpiderItem()
         item = response.meta['item']
         auther = response.xpath('/html/body/div/div/div[2]/div/dl/dd/i/text()').extract_first()
+        if not auther:
+            auther = response.xpath('//div[@class="infoTime"]/dl/dd/i/text()').extract_first()
         if auther:
             # # 详情链接标题
             if not item.get('title_detail'):
-                item['title_detail'] = response.xpath('//div[contains(@class, "g-content")]/div/h1/text()').extract_first()
+                item['title_detail'] = response.xpath('//div[contains(@class, "g-content")]//div/h1/text()').extract_first()
+                if not item['title_detail']:
+                    item['title_detail'] = response.xpath('//div[contains(@class, "g-content")]//div/h1/text()').extract_first()
             # 编辑者
             item['compiler'] = auther
             # 来源于
