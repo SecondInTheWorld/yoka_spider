@@ -126,7 +126,7 @@ class YokaHomePageSpider(scrapy.Spider):
             yield scrapy.Request(
                 method="GET",
                 url=focus_down_rt_url,
-                callback=self.focus_down_rt_func,
+                callback=self.parse_no_img_data,
                 meta={'item': deepcopy(item)}
             )
         else:
@@ -165,7 +165,7 @@ class YokaHomePageSpider(scrapy.Spider):
             yield scrapy.Request(
                 method="GET",
                 url=focus_down_rm_url,
-                callback=self.focus_down_rt_func,
+                callback=self.parse_no_img_data,
                 meta={'item': deepcopy(item)}
             )
         # 获取焦点栏下-右-下信息
@@ -209,7 +209,7 @@ class YokaHomePageSpider(scrapy.Spider):
                 yield scrapy.Request(
                     method="GET",
                     url=ad_url,
-                    callback=self.focus_down_rt_func,
+                    callback=self.parse_no_img_data,
                     meta={'item': deepcopy(item)}
                 )
         else:
@@ -251,7 +251,7 @@ class YokaHomePageSpider(scrapy.Spider):
             yield scrapy.Request(
                 method="GET",
                 url=ad_url,
-                callback=self.focus_down_rt_func,
+                callback=self.parse_no_img_data,
                 meta={'item': deepcopy(item)}
             )
 
@@ -576,7 +576,7 @@ class YokaHomePageSpider(scrapy.Spider):
         item['detail_img_url'] = ';'.join([i.strip() for i in detail_img_url])
         yield item
 
-    def focus_down_rt_func(self, response):
+    def parse_no_img_data(self, response):
         item = response.meta['item']
         # print(response.text)
         # 详情链接标题

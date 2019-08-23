@@ -60,8 +60,24 @@ class YokaDetailPipeline(object):
                     title_detail=item['title_detail'], link_url=item['link_url'], img_url=item['img_url'],
                     compiler=item['compiler'], come_from=item['come_from'], release_time=item['release_time'],
                     content_detail=item['content_detail'], detail_img_url=item['detail_img_url'])
+
             elif spider.name == 'yokaHomePage':
                 insert_sql = """insert ignore into yoka_home_detail(site_name, domain, domain_url, 
+                                first_title, first_title_url, second_title, second_title_url, column_level, 
+                                price, title_detail, link_url, img_url, compiler, come_from, release_time, 
+                                content_detail, detail_img_url) VALUES ('{site_name}', '{domain}', '{domain_url}', 
+                                '{first_title}', '{first_title_url}', '{second_title}', '{second_title_url}', 
+                                '{column_level}', '{price}', '{title_detail}', '{link_url}', '{img_url}', '{compiler}', 
+                                '{come_from}', '{release_time}', '{content_detail}', '{detail_img_url}')""".format(
+                    site_name=item['site_name'], domain=item['domain'], domain_url=item['domain_url'],
+                    first_title=item['first_title'], first_title_url=item['first_title_url'],
+                    second_title=item['second_title'],
+                    second_title_url=item['second_title_url'], column_level=item['column_level'], price=2400,
+                    title_detail=item['title_detail'], link_url=item['link_url'], img_url=item['img_url'],
+                    compiler=item['compiler'], come_from=item['come_from'], release_time=item['release_time'],
+                    content_detail=item['content_detail'], detail_img_url=item['detail_img_url'])
+            elif spider.name == 'yokaClubColumn':
+                insert_sql = """insert ignore into yoka_club_column_detail(site_name, domain, domain_url, 
                                 first_title, first_title_url, second_title, second_title_url, column_level, 
                                 price, title_detail, link_url, img_url, compiler, come_from, release_time, 
                                 content_detail, detail_img_url) VALUES ('{site_name}', '{domain}', '{domain_url}', 
@@ -78,8 +94,8 @@ class YokaDetailPipeline(object):
             else:
                 insert_sql = ''
             # insert_sql = insert_sql.encode('gbk', 'ignore')
-            print(insert_sql)
-            print("item", item)
+            # print(insert_sql)
+            # print("item", item)
             self.cursor.execute(insert_sql)
             # 4. 提交操作
             self.connect.commit()
