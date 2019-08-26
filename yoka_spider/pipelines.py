@@ -7,18 +7,30 @@ import pandas as pd
 import copy
 import pymysql
 
+mysqlConfig = {'host': '59.111.106.192', 'port': 3306,
+               'user': '|_|^spider^|_|', 'passwd': 'a19956171223',
+               'db': 'YokaDB', 'charset': 'utf8mb4'}
+
 
 class YokaDetailPipeline(object):
     """将详情数据插入到mysql数据库中"""
 
     def __init__(self):
         # 1. 建立数据库的连接
+        # self.connect = pymysql.connect(
+        #     host='59.111.106.192',
+        #     port=3306,
+        #     user='|_|^spider^|_|',
+        #     passwd='a19956171223',
+        #     db='YokaDB',
+        #     charset='utf8mb4'
+        # )
         self.connect = pymysql.connect(
-            host='59.111.106.192',
+            host='localhost',
             port=3306,
-            user='|_|^spider^|_|',
-            passwd='a19956171223',
-            db='YokaDB',
+            user='root',
+            passwd='mysql',
+            db='yokaDB',
             charset='utf8mb4'
         )
         # 2. 创建一个游标cursor, 是用来操作表。

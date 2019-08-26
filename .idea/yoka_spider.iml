@@ -4,7 +4,7 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.6 (ourui_epaper-master-imf9ky3B)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.6 (spider_env)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="suning" />
     <orderEntry type="module" module-name="ourui_epaper" />

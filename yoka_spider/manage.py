@@ -5,5 +5,5 @@ from scrapy.cmdline import execute
 # execute('scrapy crawl yokaClub'.split())
 # execute('scrapy crawl yokaBeauty'.split())
 # execute('scrapy crawl yokaHomePage'.split())
-execute('scrapy crawl yokaClubColumn'.split())
-# execute('scrapy crawl yokaBeautyColumn'.split())
+# execute('scrapy crawl yokaClubColumn'.split())
+execute('scrapy crawl yokaBeautyColumn'.split())

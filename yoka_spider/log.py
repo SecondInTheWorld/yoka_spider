@@ -1,6 +1,4 @@
 # coding: utf-8
-
-from lxml import etree
 import logging.handlers
 import logging
 import os
@@ -29,7 +27,7 @@ class logger:
                             '%Y-%m-%d %H:%M:%S')
 
     # 日志输出到文件，这里用到了上面获取的日志名称，大小，保存个数
-    handle1 = logging.handlers.RotatingFileHandler('../../log.txt', maxBytes=1024*1024*1024, backupCount=1)
+    handle1 = logging.handlers.RotatingFileHandler('../log.txt', maxBytes=1024*1024*1024, backupCount=1)
     handle1.setFormatter(fmt)
     # 同时输出到屏幕，便于实施观察
     handle2 = logging.StreamHandler(stream=sys.stdout)
